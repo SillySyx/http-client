@@ -22,18 +22,18 @@ impl HttpRequest {
         }
     }
 
-    pub fn with_url(mut self, url: String) -> HttpRequest {
-        self.url = Some(url);
+    pub fn with_url<URL: Into<String>>(mut self, url: URL) -> HttpRequest {
+        self.url = Some(url.into());
         self
     }
 
-    pub fn with_header(mut self, name: String, value: String) -> HttpRequest {
-        let name = match HeaderName::from_str(&name) {
+    pub fn with_header(mut self, name: &str, value: &str) -> HttpRequest {
+        let name = match HeaderName::from_str(name) {
             Ok(value) => value,
             Err(_) => return self,
         };
 
-        let value = match HeaderValue::from_str(&value) {
+        let value = match HeaderValue::from_str(value) {
             Ok(value) => value,
             Err(_) => return self,
         };
@@ -42,8 +42,8 @@ impl HttpRequest {
         self
     }
 
-    pub fn with_body<T>(mut self, url: String) -> HttpRequest {
-        self.url = Some(url);
+    pub fn with_body<BODY: Into<Vec<u8>>>(mut self, body: BODY) -> HttpRequest {
+        self.body = Some(body.into());
         self
     }
 
