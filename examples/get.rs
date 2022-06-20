@@ -1,8 +1,9 @@
 use std::collections::HashMap;
+use tokio::main;
 
 use http_client::HttpRequest;
 
-#[tokio::main]
+#[main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response = HttpRequest::new()
         .with_url("https://httpbin.org/ip".to_string())
