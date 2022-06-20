@@ -1,29 +1,31 @@
-use std::{error::Error, str::FromStr};
+use std::{str::FromStr, collections::HashMap};
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
-use crate::{HttpMethods, HttpResponse};
+use crate::HttpMethod;
 
 #[derive(Clone)]
 pub struct HttpRequest {
-    pub url: Option<String>,
-    pub method: Option<HttpMethods>,
+    pub url: String,
+    pub method: HttpMethod,
     pub headers: HeaderMap,
-    pub body: Option<Vec<u8>>,
+    pub query_params: HashMap<String, String>,
+    pub body: Vec<u8>,
 }
 
 impl HttpRequest {
     pub fn new() -> Self {
         Self {
-            method: None,
-            url: None,
+            method: HttpMethod::Get,
+            url: String::new(),
             headers: HeaderMap::new(),
-            body: None,
+            query_params: HashMap::new(),
+            body: vec![],
         }
     }
 
     pub fn with_url<URL: Into<String>>(mut self, url: URL) -> HttpRequest {
-        self.url = Some(url.into());
+        self.url = url.into();
         self
     }
 
@@ -42,70 +44,18 @@ impl HttpRequest {
         self
     }
 
-    pub fn with_body<BODY: Into<Vec<u8>>>(mut self, body: BODY) -> HttpRequest {
-        self.body = Some(body.into());
+    pub fn with_query_param<VALUE: Into<String>>(mut self, name: VALUE, value: VALUE) -> HttpRequest {
+        self.query_params.insert(name.into(), value.into());
         self
     }
 
-    pub async fn get(mut self) -> Result<HttpResponse, Box<dyn Error>> {
-        self.method = Some(HttpMethods::Get);
-        send(self).await
+    pub fn with_body<BODY: Into<Vec<u8>>>(mut self, body: BODY) -> HttpRequest {
+        self.body = body.into();
+        self
     }
 
-    pub async fn post(mut self) -> Result<HttpResponse, Box<dyn Error>> {
-        self.method = Some(HttpMethods::Post);
-        send(self).await
+    pub fn with_method(mut self, method: HttpMethod) -> HttpRequest {
+        self.method = method;
+        self
     }
-
-    pub async fn put(mut self) -> Result<HttpResponse, Box<dyn Error>> {
-        self.method = Some(HttpMethods::Put);
-        send(self).await
-    }
-
-    pub async fn patch(mut self) -> Result<HttpResponse, Box<dyn Error>> {
-        self.method = Some(HttpMethods::Patch);
-        send(self).await
-    }
-
-    pub async fn delete(mut self) -> Result<HttpResponse, Box<dyn Error>> {
-        self.method = Some(HttpMethods::Delete);
-        send(self).await
-    }
-}
-
-async fn send(request: HttpRequest) -> Result<HttpResponse, Box<dyn Error>> {
-    let method = match request.method {
-        Some(HttpMethods::Delete) => reqwest::Method::DELETE,
-        Some(HttpMethods::Get) => reqwest::Method::GET,
-        Some(HttpMethods::Patch) => reqwest::Method::PATCH,
-        Some(HttpMethods::Post) => reqwest::Method::POST,
-        Some(HttpMethods::Put) => reqwest::Method::PUT,
-        None => return Err(Box::from("No method specified")),
-    };
-
-    let url = match request.url {
-        Some(url) => url,
-        None => return Err(Box::from("No url specified")),
-    };
-    
-    let body = match request.body {
-        Some(body) => body,
-        None => vec![],
-    };
-
-    let builder = reqwest::Client::new()
-        .request(method, url)
-        .headers(request.headers)
-        .body(body);
-
-    let response = builder.send().await?;
-
-    let status_code = response.status().as_u16();
-    let bytes = response.bytes().await?;
-    let bytes = bytes.to_vec();
-
-    Ok(HttpResponse {
-        body: bytes,
-        status_code,
-    })
 }

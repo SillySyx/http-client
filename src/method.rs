@@ -1,5 +1,5 @@
 #[derive(Clone)]
-pub enum HttpMethods {
+pub enum HttpMethod {
     Get,
     Post,
     Put,

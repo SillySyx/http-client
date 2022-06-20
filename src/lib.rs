@@ -1,9 +1,13 @@
 mod request;
 mod response;
-mod methods;
+mod method;
+mod send_request;
+mod error;
 
 pub use {
-    request::HttpRequest,
-    response::HttpResponse,
-    methods::HttpMethods,
+    request::*,
+    response::*,
+    method::*,
+    send_request::*,
+    error::*,
 };
