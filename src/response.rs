@@ -13,10 +13,11 @@ impl HttpResponse {
     }
 
     pub fn body_as<'a, T>(&'a self) -> Result<T, HttpError> where T: Deserialize<'a> {
-        if let Ok(body) = serde_json::from_slice::<T>(&self.body) {
-            return Ok(body);
-        }
+        let body = match serde_json::from_slice::<T>(&self.body) {
+            Ok(value) => value,
+            Err(error) => return Err(HttpError::FailedToDeserializeResponseBody(format!("{:?}", error))),
+        };
 
-        Err(HttpError::FailedToDeserializeResponseBody)
+        Ok(body)
     }
 }

@@ -3,5 +3,5 @@ pub enum HttpError {
     NoUrlSpecified,
     FailedToSend(String),
     FailedToReadResponseBytes,
-    FailedToDeserializeResponseBody,
+    FailedToDeserializeResponseBody(String),
 }
